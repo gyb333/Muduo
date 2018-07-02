@@ -30,19 +30,20 @@ namespace muduo
                      //   getAndSet(that.get());
                      //   return *this;
                      // }
-                     T get()
+
+                     T get()    //返回value_的值，如果value_=0，把它和0交换。
                      {
                            // in gcc >= 4.7: __atomic_load_n(&value_, __ATOMIC_SEQ_CST)
                            return __sync_val_compare_and_swap(&value_, 0, 0);
                      }
-                     T getAndAdd(T x)
+                     T getAndAdd(T x)   //先获取没有修改的value_的值，再给value_+x
                      {
                            // in gcc >= 4.7: __atomic_fetch_add(&value_, x, __ATOMIC_SEQ_CST)
                            return __sync_fetch_and_add(&value_, x);
                      }
                      T addAndGet(T x)
                      {
-                           return getAndAdd(x) + x;
+                           return getAndAdd(x) + x;//因为x是局部变量，其他线程无法引用，所以+x没有问题
                      }
                      T incrementAndGet()
                      {
@@ -64,7 +65,7 @@ namespace muduo
                      {
                            decrementAndGet();
                      }
-                     T getAndSet(T newValue)
+                     T getAndSet(T newValue)    //先get然后设置为新的值
                      {
                            // in gcc >= 4.7: __atomic_exchange_n(&value, newValue, __ATOMIC_SEQ_CST)
                            return __sync_lock_test_and_set(&value_, newValue);

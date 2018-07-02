@@ -18,13 +18,13 @@ public:
           queue_()
     {
     }
-    void put(const T& x)
+    void put(const T& x)    //往阻塞队列放任务
     {
         {
             MutexLockGuard lock(mutex_);
             queue_.push_back(x);
         }
-        notEmpty_.notify();
+        notEmpty_.notify(); //不空唤醒
     }
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
     void put(T&& x)
@@ -37,7 +37,7 @@ public:
     }
     // FIXME: emplace()
 #endif
-    T take()
+    T take()//往阻塞队列取任务
     {
         MutexLockGuard lock(mutex_);
         // always use a while-loop, due to spurious wakeup
@@ -46,15 +46,16 @@ public:
             notEmpty_.wait();
         }
         assert(!queue_.empty());
+
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
         T front(std::move(queue_.front()));
 #else
         //T x = T();   // 如果T是内建类型，x是0或者false
         //T x = queue_.front();
-        T front(queue_.front());    //初始化类型T
+        T front(queue_.front());    //取出队头 初始化类型T
 #endif
 
-        queue_.pop_front();
+        queue_.pop_front();//弹出队头。
         return front;
     }
     size_t size() const

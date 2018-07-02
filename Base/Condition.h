@@ -6,6 +6,7 @@
 #include <pthread.h>
 namespace muduo
 {
+        //条件变量
        class Condition : boost::noncopyable
        {
        public:

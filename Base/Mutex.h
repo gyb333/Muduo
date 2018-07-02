@@ -25,25 +25,23 @@ __END_DECLS
 #endif // CHECK_PTHREAD_RETURN_VALUE
 namespace muduo
 {
-
-
        class MutexLock : boost::noncopyable
        {
        public:
               MutexLock()
                      : holder_(0)
               {
-                     MCHECK(pthread_mutex_init(&mutex_, NULL));
+                     MCHECK(pthread_mutex_init(&mutex_, NULL));//MEMCHECK是多retval的检测，相当于assert
               }
               ~MutexLock()
               {
-                     assert(holder_ == 0);
+                     assert(holder_ == 0); //只有在没有被其它线程持有的情况下才可以析构
                      MCHECK(pthread_mutex_destroy(&mutex_));
               }
               // must be called when locked, i.e. for assertion
-              bool isLockedByThisThread() const
+              bool isLockedByThisThread() const //是否被本线程上锁
               {
-                     return holder_ == CurrentThread::tid();
+                     return holder_ == CurrentThread::tid();//返回id，通过systemcall + cache方式
               }
 
               void assertLocked() const
@@ -69,7 +67,7 @@ namespace muduo
        private:
 
               friend class Condition;
-              class UnassignGuard : boost::noncopyable
+              class UnassignGuard : boost::noncopyable  //取消赋值
               {
               public:
                      UnassignGuard(MutexLock& owner)
@@ -108,6 +106,8 @@ namespace muduo
        //   MutexLockGuard lock(mutex_);
        //   return data_.size();
        // }
+
+       //利用C++的RAII机制，让锁在作用域内全自动化
        class MutexLockGuard : boost::noncopyable
        {
        public:
@@ -121,7 +121,7 @@ namespace muduo
                      mutex_.unlock();
               }
        private:
-              MutexLock& mutex_;
+              MutexLock& mutex_;//他们仅仅是关联关系，使用引用不会导致MutexLock对象的销毁
        };
 }
 // Prevent misuse like:

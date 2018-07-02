@@ -19,6 +19,7 @@ namespace muduo
               typedef boost::function<void()> ThreadFunc;
               explicit Thread(const ThreadFunc&, const string& name = string());
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
+           //右值引用，在对象返回的时候不会拷贝构造临时对象，而是和临时对象交换，提高了效率
               explicit Thread(ThreadFunc&&, const string& name = string());
 #endif
               ~Thread();
@@ -35,10 +36,10 @@ namespace muduo
               bool       joined_;
               pthread_t  pthreadId_;
               pid_t      tid_;
-              ThreadFunc func_;
+              ThreadFunc func_; //线程回调函数
               string     name_;
               CountDownLatch latch_;
-              static AtomicInt32 numCreated_;
+              static AtomicInt32 numCreated_;   //原子操作
        };
 }
 
