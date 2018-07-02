@@ -27,7 +27,7 @@ class FixedBuffer : boost::noncopyable
   FixedBuffer()
     : cur_(data_)
   {
-    setCookie(cookieStart);
+    setCookie(cookieStart); //设置cookie
   }
 
   ~FixedBuffer()
@@ -38,6 +38,7 @@ class FixedBuffer : boost::noncopyable
   void append(const char* /*restrict*/ buf, size_t len)
   {
     // FIXME: append partially
+    //如果可用数据足够，就拷贝过去，同时移动当前指针
     if (implicit_cast<size_t>(avail()) > len)
     {
       memcpy(cur_, buf, len);

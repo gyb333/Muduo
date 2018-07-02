@@ -125,8 +125,11 @@ ThreadPool::Task ThreadPool::take()
     MutexLockGuard lock(mutex_);
     // always use a while-loop, due to spurious wakeup
      // 如果任务队列为空，那么将会一直等到队列不为空
-    while (queue_.empty() && running_)
+    while (queue_.empty() && running_)//如果任务队列为空，并且线程池处于运行态
     {
+        //等待。条件变量需要用while循环，防止惊群效应
+        //因为所有的线程都在等同一condition，即notempty，只能有线程在wait后，被notify返回时拿到mutex，并消耗资源
+        //其他线程就在while中继续等待
         notEmpty_.wait();   //释放占用锁资源，等待
     }
     Task task;
@@ -136,6 +139,7 @@ ThreadPool::Task ThreadPool::take()
         queue_.pop_front();
         if (maxQueueSize_ > 0)
         {
+             //取出一个任务之后，如任务队列长度大于0，唤醒notfull未满锁
             notFull_.notify(); // 通知其他线程，任务队列不满
         }
     }
@@ -149,17 +153,17 @@ bool ThreadPool::isFull() const
 }
 
 // 这个函数由线程执行，主要功能是启动一个循环，在循环里取出一个任务，然后执行任务
-void ThreadPool::runInThread()
+void ThreadPool::runInThread()//线程运行函数，无任务时都会阻塞在take()，有任务时会争互斥锁
 {
     try
     {
         if (threadInitCallback_)
         {
-            threadInitCallback_();
+            threadInitCallback_();//支持每个线程池运行前调度回调函数
         }
-        while (running_)
+        while (running_)//当线程池处于启动状态，一直循环 ，需要让对象析构时通知成员线程，让它们也执行完毕
         {
-            Task task(take());
+            Task task(take());  //从任务队列中取任务，无任务会阻塞
             if (task)
             {
                 task();
