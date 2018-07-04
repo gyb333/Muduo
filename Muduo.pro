@@ -56,7 +56,8 @@ HEADERS += \
     Base/GzipFile.h \
     Base/ThreadLocalSingleton.h \
     Base/ThreadLocalSingleton.h \
-    Base/ThreadPool.h
+    Base/ThreadPool.h \
+    Net/callbacks.h
 
 DISTFILES +=
 

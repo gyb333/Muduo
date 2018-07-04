@@ -54,8 +54,8 @@ public:
         //T x = queue_.front();
         T front(queue_.front());    //取出队头 初始化类型T
 #endif
-
-        queue_.pop_front();//弹出队头。
+        //用的时候用front取出来尽管用，等到用完了在pop，就不会非法访问内存
+        queue_.pop_front();//弹出队头。出队的东西是要被free掉的，就不会内存泄漏
         return front;
     }
     size_t size() const
